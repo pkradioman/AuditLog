@@ -110,9 +110,12 @@ namespace MyApp
                 var beginTimestamp = req.Items["BeginTimestamp"];
                 var endTimestamp = DateTime.Now;
                 var session = req.SessionAs<CustomUserSession>();
+                var authRepo = container.Resolve<IAuthRepository>();
+                var manageRole = authRepo as IManageRoles;
+                var roles = manageRole.GetRoles(session.UserAuthId);
 
                 Console.WriteLine($"=====> Request at [{beginTimestamp}]");
-                Console.WriteLine($"       Username: {session.UserName}, Roles: {session.Roles.ToSafeJson()}");
+                Console.WriteLine($"       Username: {session.UserName}, Roles: {roles.ToSafeJson()}");
                 Console.WriteLine($"       {req.Verb}, {req.OperationName}, {req.Dto.ToSafeJson()}");
                 Console.WriteLine();
 

@@ -51,14 +51,20 @@ namespace MyApp.ServiceInterface
             var model = request.ConvertTo<GroupModel>();
             model.Id = ShortId.Generate(true, false, 10);
             repo.Add(model);
-            return new HttpResult(model, "application/json", HttpStatusCode.Created);
+            return new HttpResult(
+                model, 
+                MimeTypes.GetMimeType("json"),                
+                HttpStatusCode.Created);
         }
 
         public object Delete(GroupDelete request)
         {
             var model = repo.First(m => m.Id == request.Id);
             repo.Remove(model);
-            return new HttpResult(model, "application/json", HttpStatusCode.OK);
+            return new HttpResult(
+                model,
+                MimeTypes.GetMimeType("json"), 
+                HttpStatusCode.OK);
         }
 
     }
