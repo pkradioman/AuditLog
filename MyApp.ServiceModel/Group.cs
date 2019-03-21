@@ -4,6 +4,11 @@ using MyApp.Domain;
 
 namespace MyApp.ServiceModel
 {
+    [Route("/groups/query", "GET")]
+    public class GroupQuery : QueryDb<GroupModel>
+    {
+    }
+
     [Route("/groups", "GET")]
     public class GroupList : IReturn<List<GroupModel>>
     {

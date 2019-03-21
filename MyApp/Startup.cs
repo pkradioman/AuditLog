@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyApp.Domain;
 using MyApp.ServiceInterface;
 using ServiceStack;
+using ServiceStack.Api.OpenApi;
 using ServiceStack.Auth;
 using ServiceStack.Configuration;
 using ServiceStack.Data;
@@ -84,6 +85,7 @@ namespace MyApp
         public override void Configure(Container container)
         {
             Plugins.Add(new PostmanFeature());
+            Plugins.Add(new OpenApiFeature());
 
             SetConfig(new HostConfig
             {
@@ -109,13 +111,18 @@ namespace MyApp
 
                 var beginTimestamp = req.Items["BeginTimestamp"];
                 var endTimestamp = DateTime.Now;
-                var session = req.SessionAs<CustomUserSession>();
-                var authRepo = container.Resolve<IAuthRepository>();
-                var manageRole = authRepo as IManageRoles;
-                var roles = manageRole.GetRoles(session.UserAuthId);
 
                 Console.WriteLine($"=====> Request at [{beginTimestamp}]");
-                Console.WriteLine($"       Username: {session.UserName}, Roles: {roles.ToSafeJson()}");
+                if (req.IsAuthenticated())
+                {
+                    var session = req.SessionAs<CustomUserSession>();
+                    var authRepo = container.Resolve<IAuthRepository>();
+                    var manageRole = authRepo as IManageRoles;
+                    var roles = manageRole.GetRoles(session.UserAuthId);
+
+                    Console.WriteLine($"       Username: {session.UserName}, Roles: {roles.ToSafeJson()}");
+                }
+                
                 Console.WriteLine($"       {req.Verb}, {req.OperationName}, {req.Dto.ToSafeJson()}");
                 Console.WriteLine();
 
@@ -142,6 +149,24 @@ namespace MyApp
 
             });
 
+            //Handle Exceptions occurring in Services:
+            //
+            ServiceExceptionHandlers.Add((httpReq, request, exception) => {
+                //log your exceptions here...
+                return null; //continue with default Error Handling
+
+                //or return your own custom response
+                //return DtoUtils.CreateErrorResponse(request, exception);
+            });
+
+            //Handle Unhandled Exceptions occurring outside of Services
+            //E.g. Exceptions during Request binding or in filters:
+            //
+            UncaughtExceptionHandlers.Add((req, res, operationName, ex) => {
+                res.Write($"Error: {ex.GetType().Name}: {ex.Message}");
+                res.EndRequest(skipHeaders: true);
+            });
+
             container.Register<IDbConnectionFactory>(c =>
                 new OrmLiteConnectionFactory(":memory:", SqliteDialect.Provider));
 
@@ -158,6 +183,7 @@ namespace MyApp
                     // new NetCoreIdentityAuthProvider(AppSettings) { // Adapter to enable ServiceStack Auth in MVC
                     //     AdminRoles = { "Manager" }, // Automatically Assign additional roles to Admin Users
                     // },
+                    new BasicAuthProvider(), //Allow Sign-ins with HTTP Basic Auth
                     new CredentialsAuthProvider(AppSettings),     // Sign In with Username / Password credentials 
                     // new FacebookAuthProvider(AppSettings), /* Create Facebook App at: https://developers.facebook.com/apps */
                     // new TwitterAuthProvider(AppSettings),  /* Create Twitter App at: https://dev.twitter.com/apps */

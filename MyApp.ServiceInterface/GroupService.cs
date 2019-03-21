@@ -12,12 +12,20 @@ using System.Net;
 
 namespace MyApp.ServiceInterface
 {
+    [Authenticate]
     public class GroupServices : Service
     {
         private readonly IList<GroupModel> repo;
+
         public GroupServices(IList<GroupModel> repo)
         {
             this.repo = repo;
+        }
+
+        public object Get(GroupQuery request)
+        {
+            var result = repo;
+            return result;
         }
 
         public object Get(GroupList request)
