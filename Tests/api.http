@@ -1,0 +1,11 @@
+
+@baseUrl = http://localhost:5000/json/reply
+
+# @name permissionGet
+GET {{baseUrl}}/resourceQuery
+Accept: application/json
+
+{
+}
+
+###

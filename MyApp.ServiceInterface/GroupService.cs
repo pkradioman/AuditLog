@@ -9,25 +9,28 @@ using MyApp.Domain;
 using ServiceStack.Configuration;
 using shortid;
 using System.Net;
+using MyApp.ServiceStack.Permission;
 
 namespace MyApp.ServiceInterface
 {
     [Authenticate]
-    public class GroupServices : Service
+    public class GroupService : Service
     {
         private readonly IList<GroupModel> repo;
 
-        public GroupServices(IList<GroupModel> repo)
+        public GroupService(IList<GroupModel> repo)
         {
             this.repo = repo;
         }
 
+        [RequiredPermissionEx("Group", "Query")]
         public object Get(GroupQuery request)
         {
             var result = repo;
             return result;
         }
 
+        [RequiredPermissionEx("Group", "Get")]
         public object Get(GroupList request)
         {
             var result = repo;
@@ -54,6 +57,7 @@ namespace MyApp.ServiceInterface
             */
         }
 
+        [RequiredPermissionEx("Group", "Create")]
         public object Post(GroupAdd request)
         {
             var model = request.ConvertTo<GroupModel>();
@@ -65,6 +69,7 @@ namespace MyApp.ServiceInterface
                 HttpStatusCode.Created);
         }
 
+        [RequiredPermissionEx("Group", "Delete")]
         public object Delete(GroupDelete request)
         {
             var model = repo.First(m => m.Id == request.Id);
